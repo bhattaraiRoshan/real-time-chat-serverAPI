@@ -9,11 +9,11 @@ import { generateJWTs } from "../utility/jwtHelper.js";
 const userRouter = express.Router()
 
 userRouter.post("/register", async (req,res)=>{
-    
     try {
         
         const {name, email, password} = req.body;
 
+        console.log(name);
         if(!name || !email || !password){
             return buildErrorResponse(res, "All field must be filled")
         }
@@ -28,14 +28,21 @@ userRouter.post("/register", async (req,res)=>{
 
         const encryptPassword = hashPassword(password)
 
+       const JWT =  await generateJWTs(email)
+      
         const user = await createUser({
-            name, email, password: encryptPassword
+            name, email, password: encryptPassword, refreshJWT: JWT.accessJWT
 
         })
 
+        const userResponse = {
+            name: user?.name,
+            email: user?.email,
+            token: user?.refreshJWT
+        }
 
         return user?._id 
-        ? buildSuccessResponse(res, {}, "User created Successfully")
+        ? buildSuccessResponse(res, userResponse, "User created Successfully")
         : buildErrorResponse(res, "Cannot register your account, try again later")
 
 
@@ -59,11 +66,12 @@ userRouter.post("/register", async (req,res)=>{
     try {
         const {email, password} = req.body
 
-        if(!email || !password){
-            return buildErrorResponse(res, "All field must be filled")
-        }
+        // if(!email || !password){
+        //     return buildErrorResponse(res, "All field must be filled")
+        // }
 
         const user = await findUserByEmail(email);
+        console.log(user);
 
         if(!user?._id){
             return buildErrorResponse(res, "User account does not exist!")
@@ -76,9 +84,9 @@ userRouter.post("/register", async (req,res)=>{
         }
 
         if(isPasswordMatch){
-            const jwt = await generateJWTs(user.email)
+            // const jwt = await generateJWTs(user.email)
 
-            return buildSuccessResponse(res, jwt, "Logged in Successfully")
+            return buildSuccessResponse(res, user, "Logged in Successfully")
         }
 
         return buildErrorResponse(res, "Invalid Credentials")
