@@ -2,7 +2,7 @@ import express from "express"
 import validator from "validator";
 import { buildErrorResponse, buildSuccessResponse } from "../utility/responseHelper.js";
 import { comparePassword, hashPassword } from "../utility/bcryptHelper.js";
-import { createUser, findUserByEmail } from "../Models/users/userModels.js";
+import { createUser, findUserByEmail, getAllUser, getOneUser } from "../Models/users/userModels.js";
 import { generateJWTs } from "../utility/jwtHelper.js";
 
 
@@ -71,13 +71,14 @@ userRouter.post("/register", async (req,res)=>{
         // }
 
         const user = await findUserByEmail(email);
-        console.log(user);
+       
 
         if(!user?._id){
             return buildErrorResponse(res, "User account does not exist!")
         }
 
         const isPasswordMatch = comparePassword(password, user.password)
+        
 
         if(!isPasswordMatch){
             return buildErrorResponse(res, "Invalid Credentials")
@@ -98,8 +99,37 @@ userRouter.post("/register", async (req,res)=>{
 })
 
 
-// get all user 
+// get one user 
 
+userRouter.get("/find/:userId", async(req, res)=>{
+    try {
+        const {userId} = req.params
+       
+
+        const user = await getOneUser(userId)
+
+        user?._id
+        ? buildSuccessResponse(res, user, "User")
+        : buildErrorResponse(res, "Can't find")
+
+    } catch (error) {
+        return buildErrorResponse(res, "can't find")
+    }
+})
+
+
+// get all User 
+
+userRouter.get("/getalluser", async(req, res)=>{
+
+    try {
+        const getAllUsers = await getAllUser()
+
+        res.status(200).json(getAllUsers)
+    } catch (error) {
+        res.status(500).json(error)
+    }
+})
 
 
 export default userRouter

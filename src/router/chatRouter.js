@@ -12,6 +12,7 @@ const chatRouter = express.Router()
 chatRouter.post("/", async(req, res)=>{
 
     const {firstId, secondId} = req.body
+    console.log(firstId, secondId);
 
     try {
 
@@ -47,6 +48,8 @@ chatRouter.get("/:userId", async(req, res)=>{
     try {
         const userId = req.params.userId
 
+      
+
         
 
         const chats = await findUserChatByID(userId)
@@ -71,7 +74,7 @@ chatRouter.get("/find/:firstId/:secondId", async(req, res)=>{
         const {firstId, secondId} = req.params
 
         const chat = await getUserChat(firstId, secondId)
-        console.log(chat);
+      
 
         chat?._id 
         ? buildSuccessResponse(res, chat, "Chats Found")
