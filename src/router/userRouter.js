@@ -2,7 +2,7 @@ import express from "express"
 import validator from "validator";
 import { buildErrorResponse, buildSuccessResponse } from "../utility/responseHelper.js";
 import { comparePassword, hashPassword } from "../utility/bcryptHelper.js";
-import { createUser, findUserByEmail, getAllUser, getOneUser } from "../Models/users/userModels.js";
+import { createUser, findUserByEmail, getAllUser, getOneUser, updateUser } from "../Models/users/userModels.js";
 import { generateJWTs } from "../utility/jwtHelper.js";
 
 
@@ -28,10 +28,10 @@ userRouter.post("/register", async (req,res)=>{
 
         const encryptPassword = hashPassword(password)
 
-       const JWT =  await generateJWTs(email)
+    //    const JWT =  await generateJWTs(email)
       
         const user = await createUser({
-            name, email, password: encryptPassword, refreshJWT: JWT.accessJWT
+            name, email, password: encryptPassword
 
         })
 
@@ -85,9 +85,19 @@ userRouter.post("/register", async (req,res)=>{
         }
 
         if(isPasswordMatch){
-            // const jwt = await generateJWTs(user.email)
+            const refreshJWT = await generateJWTs(user?.email)
 
-            return buildSuccessResponse(res, user, "Logged in Successfully")
+            console.log(refreshJWT);
+
+            // update use with tokem 
+
+            const updateUserWithJWT = await updateUser({ _id: user._id}, {refreshJWT})
+
+            if(updateUserWithJWT?._id){
+                return buildSuccessResponse(res, updateUserWithJWT, "Logged in Successfully")
+            }
+
+            return buildErrorResponse(res, "Something Went Wrong")
         }
 
         return buildErrorResponse(res, "Invalid Credentials")
