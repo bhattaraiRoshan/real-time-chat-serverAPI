@@ -87,7 +87,8 @@ userRouter.post("/register", async (req,res)=>{
         if(isPasswordMatch){
             const refreshJWT = await generateJWTs(user?.email)
 
-            console.log(refreshJWT);
+          
+      
 
             // update use with tokem 
 
